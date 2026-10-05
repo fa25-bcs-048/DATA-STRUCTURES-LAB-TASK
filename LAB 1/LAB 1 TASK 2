@@ -1,0 +1,226 @@
+// Lab 1 - Task 2
+// Array List with insert, delete and display functions
+
+#include <iostream>                              // needed for cin and cout
+using namespace std;                             // so we don't have to write std:: every time
+
+const int MAX = 100;                             // the most values our list can hold
+int list[MAX];                                   // the array that stores the list values
+int length = 0;                                  // how many values are in the list right now
+
+bool isFull()                                    // tells us if there is no room left
+{
+    return length == MAX;                        // true when the count reaches the maximum size
+}
+
+bool isEmpty()                                   // tells us if the list has nothing in it
+{
+    return length == 0;                          // true when the count is zero
+}
+
+int findIndex(int value)                         // looks for a value and gives back its position
+{
+    for (int i = 0; i < length; i++)             // check each filled position one by one
+    {
+        if (list[i] == value)                    // is this the value we are looking for?
+        {
+            return i;                            // yes, so give back where we found it
+        }
+    }
+    return -1;                                   // went through everything and it wasn't there
+}
+
+void insertAt(int index, int value)              // helper that puts a value at any position
+{
+    for (int i = length; i > index; i--)         // start from the back and move towards the position
+    {
+        list[i] = list[i - 1];                   // shift each value one step to the right
+    }
+    list[index] = value;                         // drop the new value into the gap we made
+    length++;                                    // the list now has one more value
+}
+
+void removeAt(int index)                         // helper that removes the value at any position
+{
+    for (int i = index; i < length - 1; i++)     // start from the position and move to the back
+    {
+        list[i] = list[i + 1];                   // shift each value one step to the left
+    }
+    length--;                                    // the list now has one less value
+}
+
+void insertAtEnd(int value)                      // 1. adds a value at the end of the list
+{
+    if (isFull())                                // first make sure there is space
+    {
+        cout << "List is full." << endl;         // no space, so tell the user
+        return;                                  // and leave without doing anything
+    }
+    list[length] = value;                        // put the value in the first empty spot
+    length++;                                    // count the new value
+}
+
+void insertAtStart(int value)                    // 2. adds a value at the start of the list
+{
+    if (isFull())                                // first make sure there is space
+    {
+        cout << "List is full." << endl;         // no space, so tell the user
+        return;                                  // and leave without doing anything
+    }
+    insertAt(0, value);                          // position 0 is the start of the list
+}
+
+void insertAfter(int target, int value)          // 3. adds a value right after a given value
+{
+    if (isFull())                                // first make sure there is space
+    {
+        cout << "List is full." << endl;         // no space, so tell the user
+        return;                                  // and leave without doing anything
+    }
+    int pos = findIndex(target);                 // find where the given value sits
+    if (pos == -1)                               // -1 means it isn't in the list
+    {
+        cout << target << " not found." << endl; // tell the user we couldn't find it
+        return;                                  // and leave without inserting
+    }
+    insertAt(pos + 1, value);                    // insert one position after the given value
+}
+
+void insertBefore(int target, int value)         // 4. adds a value right before a given value
+{
+    if (isFull())                                // first make sure there is space
+    {
+        cout << "List is full." << endl;         // no space, so tell the user
+        return;                                  // and leave without doing anything
+    }
+    int pos = findIndex(target);                 // find where the given value sits
+    if (pos == -1)                               // -1 means it isn't in the list
+    {
+        cout << target << " not found." << endl; // tell the user we couldn't find it
+        return;                                  // and leave without inserting
+    }
+    insertAt(pos, value);                        // insert at its position so it gets pushed right
+}
+
+void display()                                   // 5. prints the whole list
+{
+    if (isEmpty())                               // nothing to print if the list is empty
+    {
+        cout << "List is empty." << endl;        // tell the user
+        return;                                  // and leave
+    }
+    cout << "List: ";                            // small label before the values
+    for (int i = 0; i < length; i++)             // go through every value in the list
+    {
+        cout << list[i] << " ";                  // print the value with a space after it
+    }
+    cout << endl;                                // move to a new line when done
+}
+
+void deleteFromEnd()                             // 6. removes the last value
+{
+    if (isEmpty())                               // can't delete from an empty list
+    {
+        cout << "List is empty." << endl;        // tell the user
+        return;                                  // and leave
+    }
+    length--;                                    // just reduce the count, the last value is ignored now
+}
+
+void deleteFromStart()                           // 7. removes the first value
+{
+    if (isEmpty())                               // can't delete from an empty list
+    {
+        cout << "List is empty." << endl;        // tell the user
+        return;                                  // and leave
+    }
+    removeAt(0);                                 // position 0 is the first value
+}
+
+void deleteValue(int value)                      // 8. removes a specific value
+{
+    if (isEmpty())                               // can't delete from an empty list
+    {
+        cout << "List is empty." << endl;        // tell the user
+        return;                                  // and leave
+    }
+    int pos = findIndex(value);                  // find where the value sits
+    if (pos == -1)                               // -1 means it isn't in the list
+    {
+        cout << value << " not found." << endl;  // tell the user we couldn't find it
+        return;                                  // and leave without deleting
+    }
+    removeAt(pos);                               // remove the value from that position
+}
+
+int main()                                       // program starts running from here
+{
+    int choice;                                  // the menu option the user picks
+    int value;                                   // the value the user wants to insert or delete
+    int target;                                  // the existing value used for before/after insert
+
+    do                                           // keep showing the menu until the user exits
+    {
+        cout << endl;                            // blank line so the menu looks clean
+        cout << "1. Insert at end" << endl;      // menu option 1
+        cout << "2. Insert at start" << endl;    // menu option 2
+        cout << "3. Insert after a value" << endl;   // menu option 3
+        cout << "4. Insert before a value" << endl;  // menu option 4
+        cout << "5. Display list" << endl;       // menu option 5
+        cout << "6. Delete from end" << endl;    // menu option 6
+        cout << "7. Delete from start" << endl;  // menu option 7
+        cout << "8. Delete a specific value" << endl; // menu option 8
+        cout << "0. Exit" << endl;               // option to close the program
+        cout << "Enter your choice: ";           // ask the user to pick one
+        cin >> choice;                           // read what the user picked
+
+        switch (choice)                          // jump to the code for that option
+        {
+        case 1:                                  // user wants to insert at the end
+            cout << "Enter value: ";             // ask for the value
+            cin >> value;                        // read the value
+            insertAtEnd(value);                  // add it to the end
+            break;                               // done with this option
+        case 2:                                  // user wants to insert at the start
+            cout << "Enter value: ";             // ask for the value
+            cin >> value;                        // read the value
+            insertAtStart(value);                // add it to the start
+            break;                               // done with this option
+        case 3:                                  // user wants to insert after some value
+            cout << "Insert after which value: "; // ask which existing value to look for
+            cin >> target;                       // read that existing value
+            cout << "Enter new value: ";         // ask for the new value
+            cin >> value;                        // read the new value
+            insertAfter(target, value);          // add the new value after the existing one
+            break;                               // done with this option
+        case 4:                                  // user wants to insert before some value
+            cout << "Insert before which value: "; // ask which existing value to look for
+            cin >> target;                       // read that existing value
+            cout << "Enter new value: ";         // ask for the new value
+            cin >> value;                        // read the new value
+            insertBefore(target, value);         // add the new value before the existing one
+            break;                               // done with this option
+        case 5:                                  // user wants to see the list
+            display();                           // print it
+            break;                               // done with this option
+        case 6:                                  // user wants to delete the last value
+            deleteFromEnd();                     // remove it
+            break;                               // done with this option
+        case 7:                                  // user wants to delete the first value
+            deleteFromStart();                   // remove it
+            break;                               // done with this option
+        case 8:                                  // user wants to delete a particular value
+            cout << "Enter value to delete: ";   // ask which value
+            cin >> value;                        // read the value
+            deleteValue(value);                  // remove it from the list
+            break;                               // done with this option
+        case 0:                                  // user wants to quit
+            cout << "Goodbye." << endl;          // say bye before closing
+            break;                               // done with this option
+        default:                                 // user typed something not in the menu
+            cout << "Invalid choice." << endl;   // let them know and show the menu again
+        }
+    } while (choice != 0);                       // loop again unless the user chose exit
+
+    return 0;                                    // tell the system the program ended fine
+}
