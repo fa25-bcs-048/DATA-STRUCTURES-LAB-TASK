@@ -1,0 +1,133 @@
+// Lab 3 - Task 3
+// Take a singly linked list as parameter and create a doubly linked list with the same data
+
+#include <iostream>                              // needed for cin and cout
+using namespace std;                             // so we don't have to write std:: every time
+
+struct SNode                                     // one box of the singly linked list
+{
+    int data;                                    // the value stored in this node
+    SNode* next;                                 // points to the node after this one
+};
+
+struct DNode                                     // one box of the doubly linked list
+{
+    int data;                                    // the value stored in this node
+    DNode* next;                                 // points to the node after this one
+    DNode* prev;                                 // points to the node before this one
+};
+
+void insertAtEnd(SNode*& head, int value)        // adds a new node at the end of the singly linked list
+{
+    SNode* newNode = new SNode;                  // make a new node in memory
+    newNode->data = value;                       // put the value inside it
+    newNode->next = NULL;                        // it will be the last node, so nothing comes after it
+
+    if (head == NULL)                            // if the list has no nodes yet
+    {
+        head = newNode;                          // the new node becomes the first node
+        return;                                  // nothing else to do
+    }
+
+    SNode* temp = head;                          // start walking from the first node
+    while (temp->next != NULL)                   // keep moving until we reach the last node
+    {
+        temp = temp->next;                       // step to the next node
+    }
+    temp->next = newNode;                        // hook the new node after the last one
+}
+
+DNode* convertToDoubly(SNode* sHead)             // builds a doubly linked list from a singly linked list
+{
+    DNode* dHead = NULL;                         // start of the new doubly list, empty for now
+    DNode* dTail = NULL;                         // last node of the new doubly list, so we can add quickly
+
+    SNode* temp = sHead;                         // start from the first node of the singly list
+    while (temp != NULL)                         // go through every node of the singly list
+    {
+        DNode* newNode = new DNode;              // make a new doubly node in memory
+        newNode->data = temp->data;              // copy the value from the singly node
+        newNode->next = NULL;                    // it is the last node for now
+        newNode->prev = dTail;                   // it points back to the node added before it
+
+        if (dHead == NULL)                       // if this is the very first node being added
+        {
+            dHead = newNode;                     // it becomes the start of the doubly list
+        }
+        else                                     // otherwise there is already a last node
+        {
+            dTail->next = newNode;               // make the old last node point forward to the new one
+        }
+
+        dTail = newNode;                         // the new node is now the last node
+        temp = temp->next;                       // step to the next node of the singly list
+    }
+
+    return dHead;                                // give back the start of the doubly list
+}
+
+void displaySingly(SNode* head)                  // prints the singly linked list
+{
+    SNode* temp = head;                          // start from the first node
+    while (temp != NULL)                         // go on until we run out of nodes
+    {
+        cout << temp->data << " ";               // print the value of the current node
+        temp = temp->next;                       // step to the next node
+    }
+    cout << endl;                                // move to a new line when done
+}
+
+void displayForward(DNode* head)                 // prints the doubly linked list from first to last
+{
+    DNode* temp = head;                          // start from the first node
+    while (temp != NULL)                         // go on until we run out of nodes
+    {
+        cout << temp->data << " ";               // print the value of the current node
+        temp = temp->next;                       // step to the next node
+    }
+    cout << endl;                                // move to a new line when done
+}
+
+void displayBackward(DNode* head)                // prints the doubly linked list from last to first
+{
+    DNode* temp = head;                          // start from the first node
+    while (temp != NULL && temp->next != NULL)   // walk forward until we are standing on the last node
+    {
+        temp = temp->next;                       // step to the next node
+    }
+    while (temp != NULL)                         // now walk back towards the start
+    {
+        cout << temp->data << " ";               // print the value of the current node
+        temp = temp->prev;                       // step to the previous node
+    }
+    cout << endl;                                // move to a new line when done
+}
+
+int main()                                       // program starts running from here
+{
+    SNode* singly = NULL;                        // the singly linked list, empty for now
+    int n;                                       // how many values the user wants to enter
+    int value;                                   // holds each value while it is being read
+
+    cout << "How many values do you want to enter? "; // ask for the size of the list
+    cin >> n;                                    // read the size
+
+    for (int i = 0; i < n; i++)                  // repeat once for every value
+    {
+        cout << "Enter value " << i + 1 << ": "; // ask for the next value
+        cin >> value;                            // read it
+        insertAtEnd(singly, value);              // add it to the singly linked list
+    }
+
+    cout << "Singly linked list: ";              // label for the original list
+    displaySingly(singly);                       // show the singly linked list
+
+    DNode* doubly = convertToDoubly(singly);     // create the doubly linked list from the singly one
+
+    cout << "Doubly linked list (forward): ";    // label for the forward print
+    displayForward(doubly);                      // show the doubly list using the next links
+    cout << "Doubly linked list (backward): ";   // label for the backward print
+    displayBackward(doubly);                     // going backward is only possible in a doubly list, so this proves it worked
+
+    return 0;                                    // tell the system the program ended fine
+}
