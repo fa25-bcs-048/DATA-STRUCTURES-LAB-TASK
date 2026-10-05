@@ -1,0 +1,293 @@
+#include <iostream>                                   // lets us use cout to print things on the screen
+using namespace std;                                  // so we can write cout instead of std::cout
+
+struct Node {                                         // one box (node) of the singly linked list
+    int data;                                         // the value stored inside this box
+    Node* next;                                       // arrow pointing to the next box (NULL if last)
+    Node(int v) {                                     // constructor: runs when we make a new node
+        data = v;                                     // put the given value inside the node
+        next = NULL;                                  // a new node points to nothing at first
+    }                                                 // end of constructor
+};                                                    // end of Node struct
+
+// ---------- small helper functions used by the demo (not part of the tasks) ----------
+
+Node* addAtEnd(Node* head, int v) {                   // adds a new node with value v at the end of the list
+    Node* n = new Node(v);                            // create the new node
+    if (head == NULL) return n;                       // if list is empty, the new node becomes the head
+    Node* t = head;                                   // start walking from the head
+    while (t->next != NULL) t = t->next;              // keep moving until we reach the last node
+    t->next = n;                                      // link the last node to the new node
+    return head;                                      // head did not change, so return it
+}                                                     // end of addAtEnd
+
+Node* build(int arr[], int n) {                       // builds a list from an array of n numbers
+    Node* head = NULL;                                // start with an empty list
+    for (int i = 0; i < n; i++) head = addAtEnd(head, arr[i]); // add every array value at the end
+    return head;                                      // give back the finished list
+}                                                     // end of build
+
+void printList(Node* head) {                          // prints the list from first to last
+    while (head != NULL) {                            // go through every node
+        cout << head->data;                           // print the value of this node
+        if (head->next != NULL) cout << " -> ";       // print an arrow if more nodes are coming
+        head = head->next;                            // move on to the next node
+    }                                                 // end of while loop
+    cout << " -> NULL" << endl;                       // show the end of the list
+}                                                     // end of printList
+
+void freeList(Node* head) {                           // gives the memory of the whole list back
+    while (head != NULL) {                            // repeat until no nodes are left
+        Node* temp = head;                            // remember the current node
+        head = head->next;                            // move forward before deleting
+        delete temp;                                  // delete the remembered node
+    }                                                 // end of while loop
+}                                                     // end of freeList
+
+// ---------- TASK 1: display the logs in reverse order (list is NOT changed) ----------
+
+void printReverse(Node* head) {                       // prints the list from last to first
+    if (head == NULL) return;                         // base case: nothing left to print, so stop
+    printReverse(head->next);                         // first go all the way to the end of the list
+    cout << head->data << " ";                        // while coming back, print each node (so last prints first)
+}                                                     // end of printReverse
+
+// ---------- TASK 2: reverse the playlist by changing only the links ----------
+
+Node* reverseList(Node* head) {                       // reverses the list and returns the new head
+    Node* prev = NULL;                                // the node behind us (starts as nothing)
+    Node* curr = head;                                // the node we are working on right now
+    while (curr != NULL) {                            // repeat until we pass the last node
+        Node* nxt = curr->next;                       // save the next node so we do not lose it
+        curr->next = prev;                            // turn the arrow of this node backwards
+        prev = curr;                                  // move prev one step forward
+        curr = nxt;                                   // move curr one step forward
+    }                                                 // end of while loop
+    return prev;                                      // prev is now the old last node, which is the new head
+}                                                     // end of reverseList
+
+// ---------- TASK 3 and TASK 8: remove duplicate values (contacts / stamps) ----------
+
+void removeDuplicates(Node* head) {                   // keeps only the first copy of each value
+    Node* curr = head;                                // curr is the node whose value we are protecting
+    while (curr != NULL) {                            // check every node one by one
+        Node* runner = curr;                          // runner looks at all nodes after curr
+        while (runner->next != NULL) {                // go until the end of the list
+            if (runner->next->data == curr->data) {   // if the next node has the same value as curr
+                Node* dup = runner->next;             // remember the duplicate node
+                runner->next = dup->next;             // skip over the duplicate by relinking
+                delete dup;                           // free the duplicate node's memory
+            } else {                                  // otherwise the next node is not a duplicate
+                runner = runner->next;                // simply move the runner forward
+            }                                         // end of if/else
+        }                                             // end of inner while
+        curr = curr->next;                            // go to the next value to protect
+    }                                                 // end of outer while
+}                                                     // end of removeDuplicates
+
+// ---------- TASK 4: detect a loop (cycle) in the list ----------
+
+bool hasLoop(Node* head) {                            // returns true if the list has a cycle
+    Node* slow = head;                                // slow pointer moves 1 step at a time
+    Node* fast = head;                                // fast pointer moves 2 steps at a time
+    while (fast != NULL && fast->next != NULL) {      // if fast reaches the end, there is no loop
+        slow = slow->next;                            // move slow by one node
+        fast = fast->next->next;                      // move fast by two nodes
+        if (slow == fast) return true;                // if they meet, they are running in a circle
+    }                                                 // end of while loop
+    return false;                                     // fast reached the end, so no loop exists
+}                                                     // end of hasLoop
+
+// ---------- TASK 5: find the middle node (left one if there are two) ----------
+
+Node* findMiddle(Node* head) {                        // returns the middle node of the list
+    if (head == NULL) return NULL;                    // an empty list has no middle
+    Node* slow = head;                                // slow moves 1 step at a time
+    Node* fast = head;                                // fast moves 2 steps at a time
+    while (fast->next != NULL && fast->next->next != NULL) { // stop early so that even size gives the LEFT middle
+        slow = slow->next;                            // move slow by one node
+        fast = fast->next->next;                      // move fast by two nodes
+    }                                                 // end of while loop
+    return slow;                                      // slow is standing on the middle node
+}                                                     // end of findMiddle
+
+// ---------- TASK 6: split into even-priced and odd-priced lines ----------
+
+void splitEvenOdd(Node* head, Node*& evenHead, Node*& oddHead) { // splits one list into two (nodes are reused)
+    evenHead = NULL;                                  // even list starts empty
+    oddHead = NULL;                                   // odd list starts empty
+    Node* evenTail = NULL;                            // remembers the last node of the even list
+    Node* oddTail = NULL;                             // remembers the last node of the odd list
+    while (head != NULL) {                            // go through every node of the original list
+        Node* nxt = head->next;                       // save the next node before we cut the link
+        head->next = NULL;                            // detach this node from the original list
+        if (head->data % 2 == 0) {                    // if the price is even
+            if (evenHead == NULL) evenHead = head;    // first even node becomes the even head
+            else evenTail->next = head;               // otherwise attach it after the last even node
+            evenTail = head;                          // this node is now the last even node
+        } else {                                      // otherwise the price is odd
+            if (oddHead == NULL) oddHead = head;      // first odd node becomes the odd head
+            else oddTail->next = head;                // otherwise attach it after the last odd node
+            oddTail = head;                           // this node is now the last odd node
+        }                                             // end of if/else
+        head = nxt;                                   // move on to the next node of the original list
+    }                                                 // end of while loop
+}                                                     // end of splitEvenOdd
+
+// ---------- TASK 7: reverse first half and second half separately ----------
+
+Node* reverseK(Node* head, int k, Node*& rest) {      // reverses the first k nodes, 'rest' gets the remaining part
+    Node* prev = NULL;                                // node behind the current one
+    Node* curr = head;                                // node being processed
+    while (k > 0 && curr != NULL) {                   // do this for k nodes only
+        Node* nxt = curr->next;                       // save the next node
+        curr->next = prev;                            // turn this arrow backwards
+        prev = curr;                                  // move prev forward
+        curr = nxt;                                   // move curr forward
+        k--;                                          // one node less to reverse
+    }                                                 // end of while loop
+    rest = curr;                                      // curr now points to the part we did not touch
+    return prev;                                      // prev is the new head of the reversed part
+}                                                     // end of reverseK
+
+Node* reverseHalves(Node* head) {                     // reverses both halves of the list separately
+    int n = 0;                                        // will hold the number of nodes
+    for (Node* t = head; t != NULL; t = t->next) n++; // count all the nodes
+    if (n < 2) return head;                           // nothing to do for 0 or 1 node
+    int half = n / 2;                                 // size of the first half
+    Node* rest = NULL;                                // will point to the start of the second half
+    Node* unused = NULL;                              // we do not need the leftover after the second half
+    Node* firstTail = head;                           // the old head becomes the tail of the first half
+    Node* newHead = reverseK(head, half, rest);       // reverse the first half
+    Node* secondHead = reverseK(rest, n - half, unused); // reverse the second half
+    firstTail->next = secondHead;                     // join the two reversed halves together
+    return newHead;                                   // return the head of the final list
+}                                                     // end of reverseHalves
+
+// ---------- TASK 9: delete every node holding a given identifier ----------
+
+Node* deleteAll(Node* head, int key) {                // removes all nodes whose data equals key
+    while (head != NULL && head->data == key) {       // case 1: key found at the beginning (maybe many times)
+        Node* temp = head;                            // remember the node to delete
+        head = head->next;                            // move the head forward
+        delete temp;                                  // free the removed node
+    }                                                 // end of while loop
+    Node* curr = head;                                // now walk through the rest of the list
+    while (curr != NULL && curr->next != NULL) {      // look at the node AFTER curr each time
+        if (curr->next->data == key) {                // case 2 and 3: key found in the middle or at the end
+            Node* temp = curr->next;                  // remember the node to delete
+            curr->next = temp->next;                  // bypass it by relinking
+            delete temp;                              // free the removed node
+        } else {                                      // otherwise this node is fine
+            curr = curr->next;                        // move forward
+        }                                             // end of if/else
+    }                                                 // end of while loop
+    return head;                                      // return the (possibly new) head
+}                                                     // end of deleteAll
+
+// ---------- TASK 10: swap every two consecutive tasks ----------
+
+void swapPairs(Node* head) {                          // swaps values of each pair (node addresses stay the same)
+    while (head != NULL && head->next != NULL) {      // continue while a full pair exists
+        int temp = head->data;                        // keep the first value safely
+        head->data = head->next->data;                // put the second value into the first node
+        head->next->data = temp;                      // put the saved value into the second node
+        head = head->next->next;                      // jump to the next pair
+    }                                                 // end of while loop
+}                                                     // end of swapPairs
+
+int main() {                                          // program starts here
+
+    cout << "===== Task 1: Print logs in reverse =====" << endl; // heading for task 1
+    int a1[] = {10, 20, 30, 40, 50};                  // sample log entries
+    Node* l1 = build(a1, 5);                          // make the list
+    cout << "Original : "; printList(l1);             // show the original list
+    cout << "Reversed : "; printReverse(l1); cout << endl; // print in reverse without changing it
+    cout << "Still    : "; printList(l1);             // prove the list was not changed
+    freeList(l1);                                     // clean up memory
+
+    cout << "\n===== Task 2: Reverse playlist =====" << endl; // heading for task 2
+    int a2[] = {1, 2, 3, 4, 5};                       // sample songs
+    Node* l2 = build(a2, 5);                          // make the list
+    cout << "Before: "; printList(l2);                // show before
+    l2 = reverseList(l2);                             // reverse the links
+    cout << "After : "; printList(l2);                // show after
+    freeList(l2);                                     // clean up memory
+
+    cout << "\n===== Task 3: Remove duplicate contacts =====" << endl; // heading for task 3
+    int a3[] = {5, 3, 5, 7, 3, 9, 5};                 // sample contacts with duplicates
+    Node* l3 = build(a3, 7);                          // make the list
+    cout << "Before: "; printList(l3);                // show before
+    removeDuplicates(l3);                             // remove duplicates
+    cout << "After : "; printList(l3);                // show after
+    freeList(l3);                                     // clean up memory
+
+    cout << "\n===== Task 4: Detect loop =====" << endl; // heading for task 4
+    int a4[] = {1, 2, 3, 4, 5};                       // sample sensor readings
+    Node* l4 = build(a4, 5);                          // make the list
+    cout << "Loop before creating one: " << (hasLoop(l4) ? "Yes" : "No") << endl; // should say No
+    Node* last = l4;                                  // start at the head
+    while (last->next != NULL) last = last->next;     // walk to the last node
+    last->next = l4->next->next;                      // make the last node point back to node 3 (creates a cycle)
+    cout << "Loop after creating one : " << (hasLoop(l4) ? "Yes" : "No") << endl; // should say Yes
+    last->next = NULL;                                // break the cycle so we can safely free the list
+    freeList(l4);                                     // clean up memory
+
+    cout << "\n===== Task 5: Middle friend =====" << endl; // heading for task 5
+    int a5[] = {1, 2, 3, 4, 5};                       // odd number of friends
+    Node* l5 = build(a5, 5);                          // make the list
+    printList(l5);                                    // show the list
+    cout << "Middle (odd count) : " << findMiddle(l5)->data << endl; // expected 3
+    freeList(l5);                                     // clean up memory
+    int a5b[] = {1, 2, 3, 4, 5, 6};                   // even number of friends
+    Node* l5b = build(a5b, 6);                        // make the list
+    printList(l5b);                                   // show the list
+    cout << "Middle (even count): " << findMiddle(l5b)->data << " (left one)" << endl; // expected 3
+    freeList(l5b);                                    // clean up memory
+
+    cout << "\n===== Task 6: Even / odd priced lines =====" << endl; // heading for task 6
+    int a6[] = {12, 7, 8, 15, 20, 3, 4};              // fruit prices
+    Node* l6 = build(a6, 7);                          // make the list
+    cout << "Original  : "; printList(l6);            // show the original list
+    Node* evenLine = NULL;                            // will hold the even list
+    Node* oddLine = NULL;                             // will hold the odd list
+    splitEvenOdd(l6, evenLine, oddLine);              // split the list
+    cout << "Even line : "; printList(evenLine);      // show even list
+    cout << "Odd line  : "; printList(oddLine);       // show odd list
+    freeList(evenLine);                               // clean up even list
+    freeList(oddLine);                                // clean up odd list
+
+    cout << "\n===== Task 7: Reverse both halves =====" << endl; // heading for task 7
+    int a7[] = {1, 2, 3, 4, 5, 6, 7, 8};              // boxes in the warehouse
+    Node* l7 = build(a7, 8);                          // make the list
+    cout << "Before: "; printList(l7);                // show before
+    l7 = reverseHalves(l7);                           // reverse each half
+    cout << "After : "; printList(l7);                // show after
+    freeList(l7);                                     // clean up memory
+
+    cout << "\n===== Task 8: Remove duplicate stamps =====" << endl; // heading for task 8
+    int a8[] = {101, 102, 101, 103, 102, 104, 101};   // stamp design numbers
+    Node* l8 = build(a8, 7);                          // make the list
+    cout << "Before: "; printList(l8);                // show before
+    removeDuplicates(l8);                             // remove duplicate designs
+    cout << "After : "; printList(l8);                // show after
+    freeList(l8);                                     // clean up memory
+
+    cout << "\n===== Task 9: Delete all copies of a book id =====" << endl; // heading for task 9
+    int a9[] = {7, 7, 1, 7, 2, 3, 7, 4, 7};           // book ids (7 appears at start, middle and end)
+    Node* l9 = build(a9, 9);                          // make the list
+    cout << "Before (delete id 7): "; printList(l9);  // show before
+    l9 = deleteAll(l9, 7);                            // delete every 7
+    cout << "After               : "; printList(l9);  // show after
+    freeList(l9);                                     // clean up memory
+
+    cout << "\n===== Task 10: Swap tasks in pairs =====" << endl; // heading for task 10
+    int a10[] = {1, 2, 3, 4, 5, 6};                   // task ids
+    Node* l10 = build(a10, 6);                        // make the list
+    cout << "Before: "; printList(l10);               // show before
+    swapPairs(l10);                                   // swap each pair
+    cout << "After : "; printList(l10);               // show after
+    freeList(l10);                                    // clean up memory
+
+    return 0;                                         // program finished successfully
+}                                                     // end of main
