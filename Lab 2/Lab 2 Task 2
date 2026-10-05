@@ -1,0 +1,103 @@
+// Lab 2 - Task 2
+// Merge two linked lists (passed as parameters) into a third new linked list
+
+#include <iostream>                              // needed for cin and cout
+using namespace std;                             // so we don't have to write std:: every time
+
+struct Node                                      // one box of the linked list
+{
+    int data;                                    // the value stored in this node
+    Node* next;                                  // points to the node that comes after this one
+};
+
+void insertAtEnd(Node*& head, int value)         // adds a new node at the end of whichever list we pass in
+{
+    Node* newNode = new Node;                    // make a new node in memory
+    newNode->data = value;                       // put the value inside it
+    newNode->next = NULL;                        // it will be the last node, so nothing comes after it
+
+    if (head == NULL)                            // if this list has no nodes yet
+    {
+        head = newNode;                          // the new node becomes the first node
+        return;                                  // nothing else to do
+    }
+
+    Node* temp = head;                           // start walking from the first node
+    while (temp->next != NULL)                   // keep moving until we reach the last node
+    {
+        temp = temp->next;                       // step to the next node
+    }
+    temp->next = newNode;                        // hook the new node after the last one
+}
+
+void display(Node* head)                         // prints the list that is passed in
+{
+    if (head == NULL)                            // check if there is anything to print
+    {
+        cout << "(empty)";                       // let the user know the list has nothing
+    }
+    Node* temp = head;                           // start from the first node
+    while (temp != NULL)                         // go on until we run out of nodes
+    {
+        cout << temp->data << " ";               // print the value of the current node
+        temp = temp->next;                       // step to the next node
+    }
+    cout << endl;                                // move to a new line when done
+}
+
+Node* mergeLists(Node* first, Node* second)      // builds a brand new list out of two lists
+{
+    Node* third = NULL;                          // the new list starts out empty
+
+    Node* temp = first;                          // start from the beginning of the first list
+    while (temp != NULL)                         // go through every node of the first list
+    {
+        insertAtEnd(third, temp->data);          // copy its value into the new list
+        temp = temp->next;                       // step to the next node
+    }
+
+    temp = second;                               // now start from the beginning of the second list
+    while (temp != NULL)                         // go through every node of the second list
+    {
+        insertAtEnd(third, temp->data);          // copy its value into the new list
+        temp = temp->next;                       // step to the next node
+    }
+
+    return third;                                // give back the start of the merged list
+}
+
+void readList(Node*& head, int number)           // takes values from the user and fills a list
+{
+    int n;                                       // how many values this list will have
+    int value;                                   // holds each value while it is being read
+
+    cout << "How many values in list " << number << "? "; // ask for the size of this list
+    cin >> n;                                    // read the size
+
+    for (int i = 0; i < n; i++)                  // repeat once for every value
+    {
+        cout << "Enter value " << i + 1 << ": "; // ask for the next value
+        cin >> value;                            // read it
+        insertAtEnd(head, value);                // add it to this list
+    }
+}
+
+int main()                                       // program starts running from here
+{
+    Node* list1 = NULL;                          // first list, empty for now
+    Node* list2 = NULL;                          // second list, empty for now
+
+    readList(list1, 1);                          // fill the first list from the user
+    readList(list2, 2);                          // fill the second list from the user
+
+    Node* list3 = mergeLists(list1, list2);      // merge both lists into a third new list
+
+    cout << "List 1: ";                          // label for the first list
+    display(list1);                              // show the first list, it is unchanged
+    cout << "List 2: ";                          // label for the second list
+    display(list2);                              // show the second list, it is unchanged
+    cout << "Merged list: ";                     // label for the new list
+    display(list3);                              // show the merged list
+
+    return 0;                                    // tell the system the program ended fine
+}
