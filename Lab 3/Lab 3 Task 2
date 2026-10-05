@@ -1,0 +1,204 @@
+// Lab 3 - Task 2
+// Search two values in a doubly linked list and swap their nodes (the nodes themselves, not the values)
+
+#include <iostream>                              // needed for cin and cout
+using namespace std;                             // so we don't have to write std:: every time
+
+struct Node                                      // one box of the doubly linked list
+{
+    int data;                                    // the value stored in this node
+    Node* next;                                  // points to the node after this one
+    Node* prev;                                  // points to the node before this one
+};
+
+Node* head = NULL;                               // start of the list, NULL means the list is empty
+
+void insertAtEnd(int value)                      // adds a new node at the end of the list
+{
+    Node* newNode = new Node;                    // make a new node in memory
+    newNode->data = value;                       // put the value inside it
+    newNode->next = NULL;                        // it will be the last node, so nothing comes after it
+    newNode->prev = NULL;                        // nothing before it yet, we set this below if needed
+
+    if (head == NULL)                            // if the list has no nodes yet
+    {
+        head = newNode;                          // the new node becomes the first node
+        return;                                  // nothing else to do
+    }
+
+    Node* temp = head;                           // start walking from the first node
+    while (temp->next != NULL)                   // keep moving until we reach the last node
+    {
+        temp = temp->next;                       // step to the next node
+    }
+    temp->next = newNode;                        // the old last node now points forward to the new node
+    newNode->prev = temp;                        // the new node points back to the old last node
+}
+
+void displayForward()                            // prints the list from first node to last
+{
+    Node* temp = head;                           // start from the first node
+    while (temp != NULL)                         // go on until we run out of nodes
+    {
+        cout << temp->data << " ";               // print the value of the current node
+        temp = temp->next;                       // step to the next node
+    }
+    cout << endl;                                // move to a new line when done
+}
+
+void displayBackward()                           // prints the list from last node to first, to check the prev links
+{
+    Node* temp = head;                           // start from the first node
+    while (temp != NULL && temp->next != NULL)   // walk forward until we are standing on the last node
+    {
+        temp = temp->next;                       // step to the next node
+    }
+    while (temp != NULL)                         // now walk back towards the start
+    {
+        cout << temp->data << " ";               // print the value of the current node
+        temp = temp->prev;                       // step to the previous node
+    }
+    cout << endl;                                // move to a new line when done
+}
+
+Node* search(int value)                          // looks for a value and gives back the node holding it
+{
+    Node* temp = head;                           // start from the first node
+    while (temp != NULL)                         // check every node
+    {
+        if (temp->data == value)                 // is this the value we are looking for?
+        {
+            return temp;                         // yes, give back this node
+        }
+        temp = temp->next;                       // no, step to the next node
+    }
+    return NULL;                                 // reached the end without finding it
+}
+
+void swapNodes()                                 // asks for two values and swaps the nodes that hold them
+{
+    int first;                                   // first value the user wants to swap
+    int second;                                  // second value the user wants to swap
+
+    cout << "Enter first value: ";               // ask for the first value
+    cin >> first;                                // read it
+    cout << "Enter second value: ";              // ask for the second value
+    cin >> second;                               // read it
+
+    Node* a = search(first);                     // find the node holding the first value
+    Node* b = search(second);                    // find the node holding the second value
+
+    if (a == NULL || b == NULL)                  // if either value is missing from the list
+    {
+        cout << "Both values must be in the list, nothing swapped." << endl; // tell the user why we stop
+        return;                                  // leave without changing anything
+    }
+
+    if (a == b)                                  // both values landed on the very same node
+    {
+        cout << "Both values are the same node, nothing to swap." << endl;   // nothing to do in that case
+        return;                                  // leave without changing anything
+    }
+
+    if (b->next == a)                            // if b sits right before a
+    {
+        Node* temp = a;                          // keep a copy of a
+        a = b;                                   // rename them so that a is always the one in front
+        b = temp;                                // this lets one piece of code handle both neighbour cases
+    }
+
+    if (a->next == b)                            // case 1: the two nodes are next to each other
+    {
+        Node* before = a->prev;                  // the node sitting before the pair
+        Node* after = b->next;                   // the node sitting after the pair
+
+        if (before != NULL)                      // if there is a node before the pair
+        {
+            before->next = b;                    // it should now point forward to b
+        }
+        else                                     // otherwise a was the first node
+        {
+            head = b;                            // so b becomes the new start of the list
+        }
+
+        if (after != NULL)                       // if there is a node after the pair
+        {
+            after->prev = a;                     // it should now point back to a
+        }
+
+        b->prev = before;                        // b takes the front spot of the pair
+        b->next = a;                             // a comes right after b now
+        a->prev = b;                             // a points back to b
+        a->next = after;                         // a connects to whatever came after the pair
+    }
+    else                                         // case 2: there are other nodes between them
+    {
+        Node* aPrev = a->prev;                   // remember the node before a
+        Node* aNext = a->next;                   // remember the node after a
+        Node* bPrev = b->prev;                   // remember the node before b
+        Node* bNext = b->next;                   // remember the node after b
+
+        if (aPrev != NULL)                       // if a had a node before it
+        {
+            aPrev->next = b;                     // that node now points forward to b
+        }
+        else                                     // otherwise a was the first node
+        {
+            head = b;                            // so b becomes the new start of the list
+        }
+
+        if (aNext != NULL)                       // if a had a node after it
+        {
+            aNext->prev = b;                     // that node now points back to b
+        }
+
+        if (bPrev != NULL)                       // if b had a node before it
+        {
+            bPrev->next = a;                     // that node now points forward to a
+        }
+        else                                     // otherwise b was the first node
+        {
+            head = a;                            // so a becomes the new start of the list
+        }
+
+        if (bNext != NULL)                       // if b had a node after it
+        {
+            bNext->prev = a;                     // that node now points back to a
+        }
+
+        a->prev = bPrev;                         // a moves into b's old place, so it takes b's old prev
+        a->next = bNext;                         // and b's old next
+        b->prev = aPrev;                         // b moves into a's old place, so it takes a's old prev
+        b->next = aNext;                         // and a's old next
+    }
+
+    cout << "Nodes swapped." << endl;            // let the user know the swap is done
+}
+
+int main()                                       // program starts running from here
+{
+    int n;                                       // how many values the user wants to enter
+    int value;                                   // holds each value while it is being read
+
+    cout << "How many values do you want to enter? "; // ask for the size of the list
+    cin >> n;                                    // read the size
+
+    for (int i = 0; i < n; i++)                  // repeat once for every value
+    {
+        cout << "Enter value " << i + 1 << ": "; // ask for the next value
+        cin >> value;                            // read it
+        insertAtEnd(value);                      // add it to the list
+    }
+
+    cout << "List before swap: ";                // label for the list before swapping
+    displayForward();                            // show the list as it was entered
+
+    swapNodes();                                 // take two values and swap their nodes
+
+    cout << "List after swap (forward): ";       // label for the list after swapping
+    displayForward();                            // show the list using the next links
+    cout << "List after swap (backward): ";      // label for the backward print
+    displayBackward();                           // show the list using the prev links to prove they are right too
+
+    return 0;                                    // tell the system the program ended fine
+}
