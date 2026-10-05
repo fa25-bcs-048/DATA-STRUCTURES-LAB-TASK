@@ -1,0 +1,90 @@
+// Lab 3 - Task 1
+// Reverse the order of a doubly linked list
+
+#include <iostream>                              // needed for cin and cout
+using namespace std;                             // so we don't have to write std:: every time
+
+struct Node                                      // one box of the doubly linked list
+{
+    int data;                                    // the value stored in this node
+    Node* next;                                  // points to the node after this one
+    Node* prev;                                  // points to the node before this one
+};
+
+Node* head = NULL;                               // start of the list, NULL means the list is empty
+
+void insertAtEnd(int value)                      // adds a new node at the end of the list
+{
+    Node* newNode = new Node;                    // make a new node in memory
+    newNode->data = value;                       // put the value inside it
+    newNode->next = NULL;                        // it will be the last node, so nothing comes after it
+    newNode->prev = NULL;                        // nothing before it yet, we set this below if needed
+
+    if (head == NULL)                            // if the list has no nodes yet
+    {
+        head = newNode;                          // the new node becomes the first node
+        return;                                  // nothing else to do
+    }
+
+    Node* temp = head;                           // start walking from the first node
+    while (temp->next != NULL)                   // keep moving until we reach the last node
+    {
+        temp = temp->next;                       // step to the next node
+    }
+    temp->next = newNode;                        // the old last node now points forward to the new node
+    newNode->prev = temp;                        // the new node points back to the old last node
+}
+
+void display()                                   // prints the list from first node to last
+{
+    Node* temp = head;                           // start from the first node
+    while (temp != NULL)                         // go on until we run out of nodes
+    {
+        cout << temp->data << " ";               // print the value of the current node
+        temp = temp->next;                       // step to the next node
+    }
+    cout << endl;                                // move to a new line when done
+}
+
+void reverseList()                               // flips the whole list so the last node becomes the first
+{
+    Node* current = head;                        // start from the first node
+    Node* last = NULL;                           // remembers the most recent node we worked on
+
+    while (current != NULL)                      // visit every node in the list
+    {
+        Node* temp = current->next;              // save the next pointer before we overwrite it
+        current->next = current->prev;           // next now points to what used to be before this node
+        current->prev = temp;                    // prev now points to what used to be after this node
+        last = current;                          // remember this node, the final one will be the new head
+        current = temp;                          // move on to the node that originally came next
+    }
+
+    head = last;                                 // the old last node is now the start of the list
+}
+
+int main()                                       // program starts running from here
+{
+    int n;                                       // how many values the user wants to enter
+    int value;                                   // holds each value while it is being read
+
+    cout << "How many values do you want to enter? "; // ask for the size of the list
+    cin >> n;                                    // read the size
+
+    for (int i = 0; i < n; i++)                  // repeat once for every value
+    {
+        cout << "Enter value " << i + 1 << ": "; // ask for the next value
+        cin >> value;                            // read it
+        insertAtEnd(value);                      // add it to the list
+    }
+
+    cout << "Original list: ";                   // label for the list before reversing
+    display();                                   // show the list as it was entered
+
+    reverseList();                               // reverse the order of the nodes
+
+    cout << "Reversed list: ";                   // label for the list after reversing
+    display();                                   // show the list again, now in reverse order
+
+    return 0;                                    // tell the system the program ended fine
+}
