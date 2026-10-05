@@ -1,0 +1,104 @@
+// Lab 2 - Task 1
+// Display a singly linked list in reverse, once using loops and once using recursion
+
+#include <iostream>                              // needed for cin and cout
+using namespace std;                             // so we don't have to write std:: every time
+
+struct Node                                      // one box of the linked list
+{
+    int data;                                    // the value stored in this node
+    Node* next;                                  // points to the node that comes after this one
+};
+
+Node* head = NULL;                               // start of the list, NULL means the list is empty
+
+void insertAtEnd(int value)                      // adds a new node at the end of the list
+{
+    Node* newNode = new Node;                    // make a new node in memory
+    newNode->data = value;                       // put the value inside it
+    newNode->next = NULL;                        // it will be the last node, so nothing comes after it
+
+    if (head == NULL)                            // if the list has no nodes yet
+    {
+        head = newNode;                          // the new node becomes the first node
+        return;                                  // nothing else to do
+    }
+
+    Node* temp = head;                           // start walking from the first node
+    while (temp->next != NULL)                   // keep moving until we reach the last node
+    {
+        temp = temp->next;                       // step to the next node
+    }
+    temp->next = newNode;                        // hook the new node after the last one
+}
+
+void display()                                   // prints the list in normal order
+{
+    Node* temp = head;                           // start from the first node
+    while (temp != NULL)                         // go on until we run out of nodes
+    {
+        cout << temp->data << " ";               // print the value of the current node
+        temp = temp->next;                       // step to the next node
+    }
+    cout << endl;                                // move to a new line when done
+}
+
+void displayReverseLoop()                        // prints the list backwards using only loops
+{
+    int count = 0;                               // will hold how many nodes the list has
+    Node* temp = head;                           // start from the first node
+    while (temp != NULL)                         // walk through the whole list once
+    {
+        count++;                                 // count this node
+        temp = temp->next;                       // step to the next node
+    }
+
+    for (int i = count - 1; i >= 0; i--)         // go from the last position back to the first
+    {
+        temp = head;                             // every time start again from the first node
+        for (int j = 0; j < i; j++)              // walk forward i steps to reach position i
+        {
+            temp = temp->next;                   // step to the next node
+        }
+        cout << temp->data << " ";               // print the node at that position
+    }
+    cout << endl;                                // move to a new line when done
+}
+
+void displayReverseRecursive(Node* current)      // prints the list backwards using recursion
+{
+    if (current == NULL)                         // if we have gone past the last node
+    {
+        return;                                  // stop here and start going back
+    }
+    displayReverseRecursive(current->next);      // first deal with all the nodes after this one
+    cout << current->data << " ";                // then print this node, so later nodes come out first
+}
+
+int main()                                       // program starts running from here
+{
+    int n;                                       // how many values the user wants to enter
+    int value;                                   // holds each value while it is being read
+
+    cout << "How many values do you want to enter? "; // ask for the size of the list
+    cin >> n;                                    // read the size
+
+    for (int i = 0; i < n; i++)                  // repeat once for every value
+    {
+        cout << "Enter value " << i + 1 << ": "; // ask for the next value
+        cin >> value;                            // read it
+        insertAtEnd(value);                      // add it to the linked list
+    }
+
+    cout << "Original list: ";                   // label for the normal order
+    display();                                   // show the list as it was entered
+
+    cout << "Reverse using loops: ";             // label for the loop version
+    displayReverseLoop();                        // show the list backwards with loops
+
+    cout << "Reverse using recursion: ";         // label for the recursive version
+    displayReverseRecursive(head);               // show the list backwards with recursion
+    cout << endl;                                // move to a new line after the recursive output
+
+    return 0;                                    // tell the system the program ended fine
+}
