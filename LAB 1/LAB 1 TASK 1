@@ -1,0 +1,35 @@
+// Lab 1 - Task 1
+// Find the sum of X squared, where X goes from a starting value to a stopping value given by the user
+
+#include <iostream>                          // needed for cin and cout
+using namespace std;                         // so we don't have to write std:: every time
+
+int main()                                   // program starts running from here
+{
+    int start;                               // first value of X
+    int stop;                                // last value of X
+    long long sum = 0;                       // keeps the running total, starts from zero
+
+    cout << "Enter starting value of X: ";   // ask the user where X should begin
+    cin >> start;                            // read the starting value
+    cout << "Enter stopping value of X: ";   // ask the user where X should end
+    cin >> stop;                             // read the stopping value
+
+    if (start > stop)                        // check if the user typed the bigger number first
+    {
+        int temp = start;                    // keep a copy of start so it isn't lost
+        start = stop;                        // put the smaller number in start
+        stop = temp;                         // put the bigger number in stop
+    }
+
+    for (int x = start; x <= stop; x++)      // go through every X from start up to stop
+    {
+        sum = sum + (long long)x * x;        // square the current X and add it to the total
+    }
+
+    cout << "Sum of X^2 from " << start;     // print the first part of the result message
+    cout << " to " << stop;                  // print the stopping value in the message
+    cout << " = " << sum << endl;            // print the final answer and move to a new line
+
+    return 0;                                // tell the system the program ended fine
+}
