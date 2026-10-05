@@ -1,0 +1,184 @@
+#include <iostream>                                   // lets us use cout to print on the screen
+#include <iomanip>                                    // lets us control how many decimal places are printed
+using namespace std;                                  // so we can write cout instead of std::cout
+
+const int REG_LAST_TWO = 8;                           // CHANGE THIS to the last two digits of YOUR registration number (08 -> 8)
+
+const int CAPACITY = 20;                              // the maximum number of values the ArrayList can ever hold
+struct ArrayList                                      // our own simple ArrayList built on a fixed array
+{                                                     // start of the struct
+    int data[CAPACITY];                               // the fixed-size array that really stores the numbers
+    int size = 0;                                     // how many numbers are actually stored right now (logical size)
+};                                                    // end of the struct
+
+// ---------------------------------------------------------------------
+// Helper: absolute value (we write it ourselves instead of using a library)
+// ---------------------------------------------------------------------
+double absVal(double x)                               // returns the positive version of x
+{                                                     // start of function
+    if (x < 0) return -x;                             // if x is negative, flip its sign
+    return x;                                         // otherwise it is already positive
+}                                                     // end of absVal
+
+// ---------------------------------------------------------------------
+// ArrayList operations
+// ---------------------------------------------------------------------
+bool insertEnd(ArrayList &list, int value)            // adds a value after the last stored element
+{                                                     // start of function
+    if (list.size >= CAPACITY) return false;          // list is full, so we cannot insert
+    list.data[list.size] = value;                     // put the value in the first free slot
+    list.size++;                                      // we now store one more element
+    return true;                                      // tell the caller the insertion worked
+}                                                     // end of insertEnd
+
+bool insertAtBeginning(ArrayList &list, int value)    // adds a value at position 0
+{                                                     // start of function
+    if (list.size >= CAPACITY) return false;          // list is full, so we cannot insert
+    for (int i = list.size; i > 0; i--)               // go from the end back to the front
+    {                                                 // start of loop body
+        list.data[i] = list.data[i - 1];              // shift each element one step to the right to make room
+    }                                                 // end of loop body
+    list.data[0] = value;                             // place the new value in the freed first slot
+    list.size++;                                      // we now store one more element
+    return true;                                      // tell the caller the insertion worked
+}                                                     // end of insertAtBeginning
+
+bool deleteAtPosition(ArrayList &list, int position)  // removes the element at the given index
+{                                                     // start of function
+    if (position < 0 || position >= list.size) return false; // the position must be inside the stored elements
+    for (int i = position; i < list.size - 1; i++)    // start at the deleted spot and go up to the second last element
+    {                                                 // start of loop body
+        list.data[i] = list.data[i + 1];              // shift each element one step to the left to close the gap
+    }                                                 // end of loop body
+    list.size--;                                      // we now store one less element
+    return true;                                      // tell the caller the deletion worked
+}                                                     // end of deleteAtPosition
+
+void displayList(const ArrayList &list)               // prints all logical elements
+{                                                     // start of function
+    cout << "[ ";                                     // opening bracket
+    for (int i = 0; i < list.size; i++)               // only go up to size, never up to CAPACITY
+    {                                                 // start of loop body
+        cout << list.data[i] << " ";                  // print the element followed by a space
+    }                                                 // end of loop body
+    cout << "]" << endl;                              // closing bracket and new line
+}                                                     // end of displayList
+
+// ---------------------------------------------------------------------
+// Manual sorting (bubble sort) used only on the temporary copy
+// ---------------------------------------------------------------------
+void bubbleSort(int arr[], int n)                     // sorts the first n numbers of arr in ascending order
+{                                                     // start of function
+    for (int i = 0; i < n - 1; i++)                   // repeat n-1 passes
+    {                                                 // start of outer loop body
+        for (int j = 0; j < n - 1 - i; j++)           // compare neighbours (the last i are already in place)
+        {                                             // start of inner loop body
+            if (arr[j] > arr[j + 1])                  // if two neighbours are in the wrong order
+            {                                         // start of if body
+                int temp = arr[j];                    // keep the left value safe
+                arr[j] = arr[j + 1];                  // move the smaller right value to the left
+                arr[j + 1] = temp;                    // put the saved bigger value on the right
+            }                                         // end of if body
+        }                                             // end of inner loop body
+    }                                                 // end of outer loop body
+}                                                     // end of bubbleSort
+
+int main()                                            // program starts here
+{                                                     // start of main
+    ArrayList list;                                   // create our ArrayList (size starts at 0)
+
+    int *ptr = list.data;                             // ptr will walk through the ArrayList
+    int *minPtr = list.data;                          // will point to the smallest element
+    int *maxPtr = list.data;                          // will point to the largest element
+    int *medianPtr = list.data;                       // will point to the median element
+    int *closestPtr = list.data;                      // will point to the value closest to specialAverage
+    int sum = 0;                                      // will hold the total of all elements
+    int closestPosition;                              // index of the closest value
+    double generalAverage;                            // sum divided by size
+    double specialAverage;                            // (min + median + max) / 3
+    double averageDifference;                         // |generalAverage - specialAverage|
+    double finalScore;                                // the final formula result
+
+    cout << fixed << setprecision(2);                 // print decimal numbers with 2 digits after the point
+
+    // ----------------------- PART A -----------------------
+    insertEnd(list, 18);                              // insert first value at the end
+    insertEnd(list, 7);                               // insert second value
+    insertEnd(list, 45);                              // insert third value
+    insertEnd(list, 11);                              // insert fourth value
+    insertEnd(list, 36);                              // insert fifth value
+    insertEnd(list, REG_LAST_TWO);                    // insert the last two digits of the registration number
+    insertEnd(list, 21);                              // insert seventh value
+    insertEnd(list, 13);                              // insert eighth value
+    insertEnd(list, 29);                              // insert ninth value
+    cout << "Initial ArrayList: ";                    // label for the output
+    displayList(list);                                // show the list (size must be 9)
+
+    // ----------------------- PART B -----------------------
+    ptr = list.data;                                  // point ptr to the first element
+    minPtr = list.data;                               // assume the first element is the minimum
+    maxPtr = list.data;                               // assume the first element is the maximum
+    for (ptr = list.data; ptr < list.data + list.size; ptr++) // walk ptr over logical elements only (stop at size)
+    {                                                 // start of loop body
+        sum += *ptr;                                  // add the value ptr points to into the sum
+        if (*ptr < *minPtr) minPtr = ptr;             // if this value is smaller, remember its address as minimum
+        if (*ptr > *maxPtr) maxPtr = ptr;             // if this value is bigger, remember its address as maximum
+    }                                                 // end of loop body
+    cout << "Minimum Value: " << *minPtr << endl;     // show the minimum by dereferencing minPtr
+    cout << "Maximum Value: " << *maxPtr << endl;     // show the maximum by dereferencing maxPtr
+
+    // ----------------------- PART C -----------------------
+    int temp[CAPACITY];                               // temporary array so the original list is not rearranged
+    for (int i = 0; i < list.size; i++)               // copy only the logical elements
+    {                                                 // start of loop body
+        temp[i] = list.data[i];                       // copy one element into the temporary array
+    }                                                 // end of loop body
+    bubbleSort(temp, list.size);                      // sort the temporary copy with our own sorting function
+    int medianValue = temp[(list.size - 1) / 2];      // middle value (for 9 elements this is index 4)
+    for (ptr = list.data; ptr < list.data + list.size; ptr++) // search the ORIGINAL list for that value
+    {                                                 // start of loop body
+        if (*ptr == medianValue)                      // found the median value in the original list
+        {                                             // start of if body
+            medianPtr = ptr;                          // make medianPtr point to this first occurrence
+            break;                                    // stop searching, we only want the first occurrence
+        }                                             // end of if body
+    }                                                 // end of loop body
+    cout << "Median Value: " << *medianPtr << endl;   // show the median by dereferencing medianPtr
+    cout << "Sum: " << sum << endl;                   // show the sum calculated in Part B
+
+    // ----------------------- PART D -----------------------
+    generalAverage = (double)sum / list.size;         // average of all elements (cast to double to keep decimals)
+    specialAverage = (*minPtr + *medianPtr + *maxPtr) / 3.0; // average of min, median and max (3.0 keeps decimals)
+    ptr = list.data;                                  // reset ptr to the start of the list
+    closestPtr = list.data;                           // assume the first element is the closest
+    for (ptr = list.data; ptr < list.data + list.size; ptr++) // traverse the original list again
+    {                                                 // start of loop body
+        if (absVal(*ptr - specialAverage) < absVal(*closestPtr - specialAverage)) // strictly closer than current best
+        {                                             // start of if body
+            closestPtr = ptr;                         // update closest (ties keep the first one found)
+        }                                             // end of if body
+    }                                                 // end of loop body
+    closestPosition = closestPtr - list.data;         // pointer subtraction gives the index of the closest value
+    cout << "General Average: " << generalAverage << endl;     // show general average
+    cout << "Special Average: " << specialAverage << endl;     // show special average
+    cout << "Closest Value: " << *closestPtr << endl;          // show closest value by dereferencing closestPtr
+    cout << "Position of Closest Value: " << closestPosition << endl; // show its index
+
+    // ----------------------- PART E -----------------------
+    averageDifference = absVal(generalAverage - specialAverage); // how far apart the two averages are
+    finalScore = absVal(*closestPtr - generalAverage) + absVal(*closestPtr - specialAverage) + averageDifference; // final formula
+    cout << "Difference Between Averages: " << averageDifference << endl; // show the difference
+    cout << "Final Score: " << finalScore << endl;       // show the final score
+
+    closestPosition = closestPtr - list.data;         // store the position BEFORE modifying the list
+    deleteAtPosition(list, closestPosition);          // delete the closest element (elements shift left)
+    cout << "ArrayList After Deletion: ";             // label for the output
+    displayList(list);                                // show the list after deletion
+
+    int roundedSpecial = (int)(specialAverage + 0.5); // round specialAverage to the nearest integer (values are positive)
+    insertAtBeginning(list, roundedSpecial);          // insert it at the front (elements shift right)
+    cout << "Final ArrayList After Insertion: ";      // label for the output
+    displayList(list);                                // show the final list
+
+    return 0;                                         // program finished successfully
+}                                                     // end of main
