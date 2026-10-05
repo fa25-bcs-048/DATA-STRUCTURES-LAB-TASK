@@ -1,0 +1,80 @@
+// Lab 1 - Task 3
+// Linear search using a while loop on the Array List from Task 2
+
+#include <iostream>                              // needed for cin and cout
+using namespace std;                             // so we don't have to write std:: every time
+
+const int MAX = 100;                             // the most values our list can hold
+int list[MAX];                                   // the array that stores the list values
+int length = 0;                                  // how many values are in the list right now
+
+void insertAtEnd(int value)                      // adds a value at the end of the list (same as Task 2)
+{
+    if (length == MAX)                           // first make sure there is space
+    {
+        cout << "List is full." << endl;         // no space, so tell the user
+        return;                                  // and leave without doing anything
+    }
+    list[length] = value;                        // put the value in the first empty spot
+    length++;                                    // count the new value
+}
+
+void display()                                   // prints the whole list (same as Task 2)
+{
+    cout << "List: ";                            // small label before the values
+    for (int i = 0; i < length; i++)             // go through every value in the list
+    {
+        cout << list[i] << " ";                  // print the value with a space after it
+    }
+    cout << endl;                                // move to a new line when done
+}
+
+int linearSearch(int key)                        // searches the list for key and returns its index
+{
+    int i = 0;                                   // start checking from the first position
+    while (i < length)                           // keep going while there are values left to check
+    {
+        if (list[i] == key)                      // is the current value the one we want?
+        {
+            return i;                            // yes, give back its position and stop searching
+        }
+        i++;                                     // no, move on to the next position
+    }
+    return -1;                                   // reached the end without finding it
+}
+
+int main()                                       // program starts running from here
+{
+    int n;                                       // how many values the user wants to enter
+    int value;                                   // holds each value while it is being read
+    int key;                                     // the value the user wants to search for
+
+    cout << "How many values do you want to enter? "; // ask for the size of the list
+    cin >> n;                                    // read the size
+
+    for (int i = 0; i < n; i++)                  // repeat once for every value
+    {
+        cout << "Enter value " << i + 1 << ": "; // ask for the next value
+        cin >> value;                            // read it
+        insertAtEnd(value);                      // store it in the list
+    }
+
+    display();                                   // show the list so the user can see what's in it
+
+    cout << "Enter value to search: ";           // ask what to look for
+    cin >> key;                                  // read the value to search
+
+    int pos = linearSearch(key);                 // run the search and save the result
+
+    if (pos == -1)                               // -1 means the search found nothing
+    {
+        cout << key << " was not found in the list." << endl;       // tell the user it isn't there
+    }
+    else                                         // any other number is a valid position
+    {
+        cout << key << " found at index " << pos;                   // print the index where it was found
+        cout << " (position " << pos + 1 << ")." << endl;           // also print the position counting from 1
+    }
+
+    return 0;                                    // tell the system the program ended fine
+}
