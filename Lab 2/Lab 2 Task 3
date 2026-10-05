@@ -1,0 +1,100 @@
+// Lab 2 - Task 3
+// Find multiple occurrences of a data element in a singly linked list
+
+#include <iostream>                              // needed for cin and cout
+using namespace std;                             // so we don't have to write std:: every time
+
+struct Node                                      // one box of the linked list
+{
+    int data;                                    // the value stored in this node
+    Node* next;                                  // points to the node that comes after this one
+};
+
+Node* head = NULL;                               // start of the list, NULL means the list is empty
+
+void insertAtEnd(int value)                      // adds a new node at the end of the list
+{
+    Node* newNode = new Node;                    // make a new node in memory
+    newNode->data = value;                       // put the value inside it
+    newNode->next = NULL;                        // it will be the last node, so nothing comes after it
+
+    if (head == NULL)                            // if the list has no nodes yet
+    {
+        head = newNode;                          // the new node becomes the first node
+        return;                                  // nothing else to do
+    }
+
+    Node* temp = head;                           // start walking from the first node
+    while (temp->next != NULL)                   // keep moving until we reach the last node
+    {
+        temp = temp->next;                       // step to the next node
+    }
+    temp->next = newNode;                        // hook the new node after the last one
+}
+
+void display()                                   // prints the whole list
+{
+    Node* temp = head;                           // start from the first node
+    while (temp != NULL)                         // go on until we run out of nodes
+    {
+        cout << temp->data << " ";               // print the value of the current node
+        temp = temp->next;                       // step to the next node
+    }
+    cout << endl;                                // move to a new line when done
+}
+
+int findOccurrences(int key)                     // finds every place the key appears and returns how many times
+{
+    int count = 0;                               // how many times we have seen the key so far
+    int position = 1;                            // position of the current node, counting from 1
+    Node* temp = head;                           // start from the first node
+
+    while (temp != NULL)                         // check every node, don't stop at the first match
+    {
+        if (temp->data == key)                   // is this node holding the value we want?
+        {
+            cout << key << " found at position " << position << endl; // tell the user where it was found
+            count++;                             // add one to the number of matches
+        }
+        temp = temp->next;                       // step to the next node
+        position++;                              // the next node is one position further
+    }
+
+    return count;                                // give back the total number of matches
+}
+
+int main()                                       // program starts running from here
+{
+    int n;                                       // how many values the user wants to enter
+    int value;                                   // holds each value while it is being read
+    int key;                                     // the value the user wants to look for
+
+    cout << "How many values do you want to enter? "; // ask for the size of the list
+    cin >> n;                                    // read the size
+
+    for (int i = 0; i < n; i++)                  // repeat once for every value
+    {
+        cout << "Enter value " << i + 1 << ": "; // ask for the next value
+        cin >> value;                            // read it
+        insertAtEnd(value);                      // add it to the linked list
+    }
+
+    cout << "List: ";                            // label before the values
+    display();                                   // show the list so the user can see what's in it
+
+    cout << "Enter value to find: ";             // ask what to look for
+    cin >> key;                                  // read the value to search
+
+    int total = findOccurrences(key);            // search the list and save how many times it was found
+
+    if (total == 0)                              // zero means it never appeared
+    {
+        cout << key << " is not in the list." << endl;              // tell the user it isn't there
+    }
+    else                                         // otherwise it appeared at least once
+    {
+        cout << key << " occurs " << total << " time(s) in the list." << endl; // print the total count
+    }
+
+    return 0;                                    // tell the system the program ended fine
+}
