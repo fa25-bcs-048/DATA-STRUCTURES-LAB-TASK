@@ -1,0 +1,200 @@
+#include <iostream>                                   // lets us use cout and cin for input/output
+#include <string>                                     // lets us use the string type for task names
+using namespace std;                                  // so we can write cout instead of std::cout
+
+// =====================================================================
+// PART 1: JOSEPHUS PROBLEM using a circular linked list
+// =====================================================================
+
+struct Person {                                       // one person standing in the circle
+    int position;                                     // the original place number of this person (1, 2, 3 ...)
+    Person* next;                                     // the next person in the circle
+    Person(int p) {                                   // constructor
+        position = p;                                 // remember the original place
+        next = this;                                  // a lonely node points to itself (circle of one)
+    }                                                 // end of constructor
+};                                                    // end of Person
+
+int josephus(int n, int m) {                          // returns the place where you should stand to survive
+    if (n <= 0 || m <= 0) return -1;                  // invalid input, no answer
+    Person* head = new Person(1);                     // create the first person
+    Person* tail = head;                              // tail will always be the last person created
+    for (int i = 2; i <= n; i++) {                    // create the remaining people
+        Person* p = new Person(i);                    // make person number i
+        tail->next = p;                               // attach after the current last person
+        tail = p;                                     // the new person is now the last one
+    }                                                 // end of for loop
+    tail->next = head;                                // close the circle: last person points to the first
+    Person* prev = tail;                              // prev always stays one step behind curr
+    Person* curr = head;                              // curr starts counting from the first person
+    cout << "Order of elimination: ";                 // label for the output
+    while (curr->next != curr) {                      // continue until only one person is left
+        for (int i = 1; i < m; i++) {                 // skip m-1 people
+            prev = curr;                              // prev follows curr
+            curr = curr->next;                        // curr moves to the next person
+        }                                             // end of skipping
+        cout << curr->position << " ";                // curr is the m-th person, print who gets killed
+        prev->next = curr->next;                      // remove curr from the circle by relinking
+        delete curr;                                  // free the killed person's memory
+        curr = prev->next;                            // start counting again from the next person
+    }                                                 // end of while loop
+    cout << endl;                                     // finish the line
+    int survivor = curr->position;                    // the only person left is the survivor
+    delete curr;                                      // free the last node
+    return survivor;                                  // give back the safe place
+}                                                     // end of josephus
+
+// =====================================================================
+// PART 2: ROUND-ROBIN TASK SCHEDULER using a circular linked list
+// =====================================================================
+
+struct Task {                                         // one task in the scheduler
+    string name;                                      // name of the task
+    int priority;                                     // priority number of the task
+    string status;                                    // "pending", "in-progress" or "completed"
+    Task* next;                                       // next task in the circle
+    Task(string n, int p, string s) {                 // constructor
+        name = n;                                     // save the name
+        priority = p;                                 // save the priority
+        status = s;                                   // save the status
+        next = NULL;                                  // will be linked later
+    }                                                 // end of constructor
+};                                                    // end of Task
+
+class Scheduler {                                     // manages the circular list of tasks
+private:                                              // hidden data
+    Task* tail;                                       // points to the LAST task (tail->next is the head)
+    Task* current;                                    // the task where the round-robin is standing now
+
+    Task* findTask(string name) {                     // searches a task by its name
+        if (tail == NULL) return NULL;                // empty list, nothing to find
+        Task* t = tail->next;                         // start at the head
+        do {                                          // look at tasks at least once
+            if (t->name == name) return t;            // found it
+            t = t->next;                              // move to the next task
+        } while (t != tail->next);                    // stop when we come back to the head
+        return NULL;                                  // went around the whole circle, not found
+    }                                                 // end of findTask
+
+public:                                               // functions anyone can use
+    Scheduler() {                                     // constructor: empty scheduler
+        tail = NULL;                                  // no tasks
+        current = NULL;                               // nothing selected
+    }                                                 // end of constructor
+
+    ~Scheduler() {                                    // destructor: frees all tasks
+        if (tail == NULL) return;                     // nothing to free
+        Task* head = tail->next;                      // first task
+        tail->next = NULL;                            // break the circle so the loop below can end
+        while (head != NULL) {                        // delete one by one
+            Task* temp = head;                        // remember the task
+            head = head->next;                        // move forward
+            delete temp;                              // delete the remembered task
+        }                                             // end of while
+    }                                                 // end of destructor
+
+    void addTask(string name, int priority, string status) { // ADD A TASK at the end of the circle
+        Task* n = new Task(name, priority, status);   // create the new task
+        if (tail == NULL) {                           // if the list is empty
+            n->next = n;                              // the only task points to itself
+            tail = n;                                 // it is also the last task
+            current = n;                              // and the first task to be considered
+        } else {                                      // otherwise
+            n->next = tail->next;                     // new task points to the head to keep the circle
+            tail->next = n;                           // old last task points to the new task
+            tail = n;                                 // new task becomes the last task
+        }                                             // end of if/else
+        cout << "Task added: " << name << endl;       // confirm to the user
+    }                                                 // end of addTask
+
+    void removeTask(string name) {                    // REMOVE A TASK by its name
+        if (tail == NULL) { cout << "No tasks to remove." << endl; return; } // empty list
+        Task* prev = tail;                            // prev stays one step behind curr
+        Task* curr = tail->next;                      // curr starts at the head
+        do {                                          // check every task once
+            if (curr->name == name) break;            // found the task to remove
+            prev = curr;                              // move prev forward
+            curr = curr->next;                        // move curr forward
+        } while (curr != tail->next);                 // stop after one full round
+        if (curr->name != name) {                     // if we never found it
+            cout << "Task not found: " << name << endl; // tell the user
+            return;                                   // nothing more to do
+        }                                             // end of if
+        if (curr->next == curr) {                     // it is the only task in the list
+            tail = NULL;                              // list becomes empty
+            current = NULL;                           // nothing selected
+        } else {                                      // there are other tasks
+            if (current == curr) current = curr->next; // do not leave 'current' on a deleted task
+            prev->next = curr->next;                  // bypass the removed task, circle stays closed
+            if (curr == tail) tail = prev;            // if we removed the last task, prev is the new last
+        }                                             // end of if/else
+        delete curr;                                  // free the removed task
+        cout << "Task removed: " << name << endl;     // confirm to the user
+    }                                                 // end of removeTask
+
+    Task* getNextTask() {                             // GET NEXT TASK in round-robin, skipping non-pending ones
+        if (current == NULL) return NULL;             // no tasks at all
+        Task* start = current;                        // remember where we began
+        do {                                          // look at every task at most once
+            Task* candidate = current;                // the task we are checking
+            current = current->next;                  // move the round-robin pointer forward
+            if (candidate->status == "pending") return candidate; // found a pending task, give it back
+        } while (current != start);                   // stop after a full round
+        return NULL;                                  // no pending task exists
+    }                                                 // end of getNextTask
+
+    void displayAll() {                               // DISPLAY ALL TASKS from the head round to the head
+        if (tail == NULL) { cout << "No tasks." << endl; return; } // empty list
+        Task* t = tail->next;                         // start at the head
+        do {                                          // print at least the first task
+            cout << "  Name: " << t->name << " | Priority: " << t->priority << " | Status: " << t->status << endl; // print details
+            t = t->next;                              // move to the next task
+        } while (t != tail->next);                    // stop when we are back at the head
+    }                                                 // end of displayAll
+
+    void updateStatus(string name, string newStatus) { // UPDATE STATUS of a task by name
+        Task* t = findTask(name);                     // search for the task
+        if (t == NULL) { cout << "Task not found: " << name << endl; return; } // not found
+        t->status = newStatus;                        // change the status
+        cout << "Updated -> Name: " << t->name << " | Priority: " << t->priority << " | Status: " << t->status << endl; // show the new details
+    }                                                 // end of updateStatus
+};                                                    // end of Scheduler
+
+int main() {                                          // program starts here
+
+    cout << "===== Josephus Problem =====" << endl;  // heading
+    int n = 7;                                        // total number of people in the circle
+    int m = 3;                                        // every m-th person is killed
+    cout << "N = " << n << ", M = " << m << endl;     // show the inputs
+    int safe = josephus(n, m);                        // find the surviving place
+    cout << "Stand at position " << safe << " to survive." << endl; // show the answer
+
+    cout << "\n===== Round-Robin Task Scheduler =====" << endl; // heading
+    Scheduler s;                                      // create the scheduler
+    s.addTask("Design", 2, "pending");                // add task 1
+    s.addTask("Coding", 1, "in-progress");            // add task 2
+    s.addTask("Testing", 3, "pending");               // add task 3
+    s.addTask("Deploy", 4, "completed");              // add task 4
+    cout << "\nAll tasks:" << endl;                   // label
+    s.displayAll();                                   // show every task
+
+    cout << "\nGetting next tasks (round-robin):" << endl; // label
+    for (int i = 0; i < 4; i++) {                     // ask for the next task a few times
+        Task* t = s.getNextTask();                    // get next pending task
+        if (t != NULL) cout << "  Next task: " << t->name << endl; // show it
+        else cout << "  No pending task." << endl;    // nothing pending
+    }                                                 // end of for loop
+
+    cout << endl;                                     // blank line
+    s.updateStatus("Design", "completed");            // mark Design as completed
+    s.removeTask("Coding");                           // remove the Coding task
+    s.removeTask("Unknown");                          // try removing a task that does not exist
+    cout << "\nAll tasks after changes:" << endl;     // label
+    s.displayAll();                                   // show every task again
+
+    Task* t = s.getNextTask();                        // get next task after the changes
+    if (t != NULL) cout << "\nNext task: " << t->name << endl; // show it
+    else cout << "\nNo pending task." << endl;        // nothing pending
+
+    return 0;                                         // program finished successfully
+}                                                     // end of main
